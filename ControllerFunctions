@@ -1,0 +1,237 @@
+#include <BlueMagic32.h>
+#include <bitset>
+#include <iostream>
+#include <vector>
+
+using std::cout;
+using std::bitset;
+using std::endl;
+
+const int lStickBtn = 21;
+const int VRy = 39;
+const int VRx = 36;
+const int potPin1 = 34;
+const int btnPin2 = 19;
+
+const int rStickBtn = 5;
+const int potPin2 = 35;
+const int rotateVRx = 32;
+const int rotateVRy = 33;
+const int btnPin1 = 18; 
+
+
+float rightPotSensorOld = 0.0;
+
+int pot1SensorVal = 0;
+int pot2SensorVal = 0;
+
+int xPosition = 0;
+int yPosition = 0;
+int rotateXPosition = 0;
+int rotateYPosition = 0;
+
+int rStickBtnState = 0;
+int rStickBtnPrevState = 0;
+int rStickBtnToggle = 0;
+
+int lStickBtnState = 0;
+int lStickBtnPrevState = 0;
+int lStickBtnToggle = 0;
+
+int btn1OnOffState = 0;
+int btn1PrevOnOffState = 0;
+int btn1State = 0;
+
+int btn2OnOffState = 0;
+int btn2PrevOnOffState = 0;
+int btn2State = 0;
+
+
+String currentString;
+String zeros;
+
+template<size_t sRes,size_t s1,size_t s2,size_t s3,size_t s4,size_t s5,size_t s6,size_t s7,size_t s8,size_t s9,size_t s10>
+std::bitset<sRes> concatLoop( const std::bitset<s1>& bs1,const std::bitset<s2>& bs2,const std::bitset<s3>& bs3,const std::bitset<s4>& bs4,const std::bitset<s5>& bs5,const std::bitset<s6>& bs6,const std::bitset<s7>& bs7,const std::bitset<s8>& bs8,const std::bitset<s9>& bs9,const std::bitset<s10>& bs10)
+{
+    std::bitset<sRes> res;
+    for(size_t i=0;i<s1;i++)
+        res[i]=bs1[i];
+
+    for(size_t i=0;i<s2;i++)
+        res[i+s1]=bs2[i];
+
+    for(size_t i=0;i<s3;i++)
+        res[i+s1+s2]=bs3[i];
+
+    for(size_t i=0;i<s4;i++)
+        res[i+s1+s2+s3]=bs4[i];
+
+    for(size_t i=0;i<s5;i++)
+        res[i+s1+s2+s3+s4]=bs5[i];
+
+    for(size_t i=0;i<s6;i++)
+        res[i+s1+s2+s3+s4+s5]=bs6[i];
+
+    for(size_t i=0;i<s7;i++)
+        res[i+s1+s2+s3+s4+s5+s6]=bs7[i];
+
+    for(size_t i=0;i<s8;i++)
+        res[i+s1+s2+s3+s4+s5+s6+s7]=bs8[i];
+
+    for(size_t i=0;i<s9;i++)
+        res[i+s1+s2+s3+s4+s5+s6+s7+s8]=bs9[i];
+
+    for(size_t i=0;i<s10;i++)
+        res[i+s1+s2+s3+s4+s5+s6+s7+s8+s9]=bs10[i];
+        
+    return res;
+}
+
+void setup() {
+//  // put your setup code here, to run once:
+    pinMode(rStickBtn, INPUT_PULLUP);
+    pinMode(btnPin1, INPUT_PULLUP);
+    pinMode(lStickBtn, INPUT_PULLUP);
+    pinMode(btnPin2, INPUT_PULLUP);
+    
+    Serial.begin(57600);
+    Serial.setTimeout(5);
+    
+    //BMDConnection.begin("BlueMagic32");
+    //BMDConnection.clearPairing(); usually commented
+    //BMDControl = BMDConnection.connect();
+
+    delay(1000);
+}
+
+String getValue(String data, char separator, int index)
+{
+  int found = 0;
+  int strIndex[] = {0, -1};
+  int maxIndex = data.length()-1;
+
+  for(int i=0; i<=maxIndex && found<=index; i++){
+    if(data.charAt(i)==separator || i==maxIndex){
+        found++;
+        strIndex[0] = strIndex[1]+1;
+        strIndex[1] = (i == maxIndex) ? i+1 : i;
+    }
+  }
+
+  return found>index ? data.substring(strIndex[0], strIndex[1]) : "";
+}
+
+
+
+
+void loop() {
+//  put your main code here, to run repeatedly:
+    currentString = "";
+    zeros = "";
+
+    rStickBtnToggle = digitalRead(rStickBtn);
+
+    btn2OnOffState = digitalRead(btnPin2);
+
+    pot1SensorVal = analogRead(potPin1);
+    xPosition = analogRead(VRx);
+    yPosition = analogRead(VRy);
+    lStickBtnToggle = digitalRead(lStickBtn);
+    btn1OnOffState = digitalRead(btnPin1);
+
+    pot2SensorVal = analogRead(potPin2);
+    rotateXPosition = analogRead(rotateVRx);
+    rotateYPosition = analogRead(rotateVRy);
+
+    
+//LEFT JOYSTICK TOGGLE BUTTON
+    if (lStickBtnToggle != lStickBtnPrevState){
+      if(lStickBtnToggle == HIGH){
+        lStickBtnState = !lStickBtnState;
+      }
+    }
+
+    lStickBtnPrevState = lStickBtnToggle;
+    currentString = currentString + lStickBtnState;
+
+//LEFT CONTROLLER TOGGLE BUTTON
+    if (btn2OnOffState != btn2PrevOnOffState){
+      if(btn2OnOffState == HIGH){
+        btn2State = !btn2State;
+      }
+    }
+
+    btn2PrevOnOffState = btn2OnOffState;
+    currentString = currentString + btn2State;
+
+
+//RIGHT JOYSTICK TOGGLE BUTTON
+    if (rStickBtnToggle != rStickBtnPrevState){
+      if(rStickBtnToggle == HIGH){
+        rStickBtnState = !rStickBtnState;
+      }
+    }
+
+    rStickBtnPrevState = rStickBtnToggle;
+    currentString = currentString + rStickBtnState;
+
+//RIGHT CONTROLLER TOGGLE BUTTON
+    if (btn1OnOffState != btn1PrevOnOffState){
+      if(btn1OnOffState == HIGH){
+        btn1State = !btn1State;
+      }
+    }
+
+    btn1PrevOnOffState = btn1OnOffState;
+    currentString = currentString + btn1State;
+
+
+
+//Convert values to binary
+    bitset<12> leftPotSensorBS(pot1SensorVal);
+    bitset<12> leftXPosBS(xPosition);
+    bitset<12> leftYPosBS(yPosition);
+    bitset<1> leftStickBtnBS(lStickBtnState);
+    bitset<1> leftBtnBS(btn2State);
+    bitset<12> rightPotSensorBS(pot2SensorVal);
+    bitset<12> rightXPosBS(rotateXPosition);
+    bitset<12> rightYPosBS(rotateYPosition);
+    bitset<1> rightStickBtnBS(rStickBtnState);
+    bitset<1> rightBtnBS(btn1State);
+
+    std::bitset<128> MasterBitSet;
+    
+    MasterBitSet=concatLoop<128,12,12,12,1,1,12,12,12,1,1>(leftPotSensorBS,leftXPosBS,leftYPosBS,leftStickBtnBS,leftBtnBS,rightPotSensorBS,rightXPosBS,rightYPosBS,rightStickBtnBS,rightBtnBS);
+
+        cout << MasterBitSet << endl;
+
+
+    //Camera Bluetooth Controls
+    if (BMDConnection.available()) {
+      // Starts recording
+      BMDControl->record(btn2State);
+
+      // Sets absolute focus, 0.0 near -> 1.0 far
+      float rightPotSensorNew = map(pot2SensorVal, 0, 4096, 0, 1000)/1000.0;    
+
+      if((rStickBtnState == 1) && (rightPotSensorNew != rightPotSensorOld)){
+        BMDControl->focus(rightPotSensorNew);
+      }
+
+//      // Sets absolute zoom, 0.0 near -> 1.0 far
+//      pot1SensorVal = map(pot1SensorVal, 0, 4096, 0, 1);
+//      BMDControl->zoom(pot1SensorVal);
+
+      // Sets absolute aperture, 0.0 smallest -> 1.0 largest
+      if((rStickBtnState == 0) && (rightPotSensorNew != rightPotSensorOld)){
+          BMDControl->aperture(rightPotSensorNew);
+          Serial.print("Update Aperture: ");
+          Serial.println(rightPotSensorNew);
+      }
+    }
+
+    
+   //Prints string to UE4
+   //cout << MasterBitSet << endl;
+   delay(50);
+}
